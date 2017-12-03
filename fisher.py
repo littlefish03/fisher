@@ -1,5 +1,6 @@
 #created by licw
 import config
+import os
 import time
 import utils
 
@@ -86,36 +87,83 @@ def get_zz_all(date):
             if len(v) == 0:
                 continue
             filename = '/home/li/data/zz_'+config.d_type[i]+'_'+k+'.txt'
-            f = open(filename, 'w')
+            f = open(filename, 'a')
             f.write(v.encode('utf-8'))
             f.close()
 
 def find_value(date):
-    TYPE_NUM = 3
-    for i in range(2,TYPE_NUM):
+    TYPE_NUM = 2
+    for i in range(1,TYPE_NUM):
         print config.zz_type[i]
-        filename = '/home/li/data/zz_'+config.d_type[i]+'_'+str(date)+'.txt'
+        filename = '/home/li/data/'+config.d_type[i]+'_'+str(date)+'.txt'
         f = open(filename, 'w')
         cs_data = get_zz_by_type(begin_date, config.zz_type[i])
         for k,v in cs_data.items():
             if len(v) == 0:
                 continue
-            vlist = v.strip().split(',')
-            try:
-                curr = float(vlist[3])
-                mon1 = float(vlist[6])
-                mon3 = float(vlist[7])
-                mon6 = float(vlist[8])
-                mon12 = float(vlist[9])
-            except ValueError:
-                continue
-            if mon1>mon3 and mon6>mon1:
-                f.write(v.encode('utf-8'))
+            all_list = v.strip().split('\n')
+            for sv in all_list:
+                vlist = sv.strip().split(',')
+                try:
+                    curr = float(vlist[3])
+                    mon1 = float(vlist[6])
+                    mon3 = float(vlist[7])
+                    mon6 = float(vlist[8])
+                    mon12 = float(vlist[9])
+                except ValueError:
+                    continue
+                if mon1>mon3 and mon6>mon1:
+                    f.write(sv.encode('utf-8'))
+                    f.write('\n')
         f.close()
 
+def get_position(data_dir,dt_type):
+    files = os.listdir(data_dir)
+    dt_files = [f for f in files if dt_type in f]
+    for f in dt_files:
+        find_percent(os.path.join(data_dir,f))
+
+def find_percent(pathfile):
+    percent = {}
+    vlist = []
+    for line in open(pathfile, 'r'):
+        vline = line.strip().split(',')
+        try:
+            curr = float(vline[3])
+        except ValueError:
+            continue
+        last_value = curr
+        hy_code = vline[1]
+        vlist.append(curr)
+    if len(vlist)<50:
+        return percent
+    high = []
+    low = []
+    for i in range(10):
+        v = max(vlist)
+        high.append(v)
+        vlist.remove(v)
+        v = min(vlist)
+        low.append(v)
+        vlist.remove(v)
+    avg_high = sum(high)/len(high)
+    avg_low = sum(low)/len(low)
+    if avg_low > last_value:
+        percent[hy_code] = 0
+    elif avg_high < last_value:
+        percent[hy_code] = 100
+    else:
+        percent[hy_code] = 100*(last_value-avg_low)/(avg_high-avg_low)
+    print avg_high,avg_low,last_value,percent
+    return percent
+
 if __name__ == '__main__':
-    begin_date = config.cs_main_begin_date
+    #begin_date = config.cs_main_begin_date
     #begin_date = '2017-11-24'
-    find_value(begin_date)
-    get_zz_all(begin_date)
+    #find_value(begin_date)
+    #get_zz_all(begin_date)
     # get_zy_all(begin_date)
+    datadir = '/home/li/data'
+    get_position(datadir,'zz_dt_pe')
+    print 'Next is PB'
+    get_position(datadir,'zz_pb')
