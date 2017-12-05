@@ -1,5 +1,6 @@
 #created by licw
 import config
+from datetime import datetime
 import os
 import time
 import utils
@@ -55,18 +56,26 @@ class StockData():
     def calc_percent(self, pathfile, pos):
         percent = {}
         vlist = []
+        roe = 0
+        end_date = datetime.strptime('2018-01-01','%Y-%M-%d')
         for line in open(pathfile, 'r'):
             vline = line.strip().split(',')
+            cur_date = datetime.strptime(vline[0].strip(),'%Y-%M-%d')
+            if cur_date>end_date:
+                break
             try:
                 pe = float(vline[12])
                 pb = float(vline[13])
             except ValueError:
                 continue
+            roe = 100*pb/pe
             curr = float(vline[pos])
             last_value = curr
-            roe = 100*pb/pe
             hy_code = str(vline[1]).zfill(6)
             vlist.append(curr)
+        #roe>10
+        if roe < 10 or pe>50:
+            return percent
         #at least two years
         if len(vlist)<100:
             return percent
@@ -82,6 +91,8 @@ class StockData():
             vlist.remove(v)
         avg_high = sum(high)/len(high)
         avg_low = sum(low)/len(low)
+        if avg_high<avg_low*3:
+            return percent
         if avg_low > last_value:
             per = 0
         elif avg_high < last_value:
@@ -89,8 +100,8 @@ class StockData():
         else:
             per = 100*(last_value-avg_low)/(avg_high-avg_low)
         if per == 0:
-            percent[hy_code] = str(vline[7]).zfill(6)+' pb: '+str(pb)+' pe: '+str(pe)+' roe: '+str(roe)
-            print avg_high,avg_low,last_value,percent
+            percent[hy_code] = 'hy:'+str(vline[7]).zfill(6)+' pb: '+str(pb)+' pe: '+str(pe)+' roe: '+str(roe)
+            print hy_code+','+str(vline[7]).zfill(6)+','+str(pb)+','+str(pe)+','+str(roe)
         # print avg_high,avg_low,last_value,percent
         return percent
 
