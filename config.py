@@ -18,3 +18,5 @@ hy_code = [101, 102,103,
            70101,70102,70103,70201,70202,70203,70301,
            80101,80102,80201,
            90101,90102,90103,90104,90105 ]
+csrc_code = ['00','01','02','03','04','05','06','07','08','09']
+gs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio-detail?industry_code=1&zb_flg=1&csrc_code=%s&date=%s&type=0&class=2'

@@ -4,6 +4,96 @@ import os
 import time
 import utils
 
+class StockData():
+    def get_pagedata(self, df):
+    # input dataframe
+        redict = {}
+        for i in range(len(df)):
+            row = ''
+            for j in range(df.columns.size):
+                if j == 0:
+                    continue
+                if isinstance(df.iat[i,j],unicode):
+                    row += ','+df.iat[i,j]
+                else:
+                    row += ','+str(df.iat[i,j])
+            #key is company code and fill by zero to len 6
+            key = str(df.iat[i,1]).zfill(6)
+            redict[key] = row
+        return redict
+
+    def get_data_by_type(self, begin_date, code):
+        redata = {}
+        date_list = utils.get_daylist(begin_date)
+        for d in date_list:
+            url = config.gs_url%(code, d)
+            data = utils.get_url_data(url)
+            if len(data) == 0:
+                continue
+            df = data[0]
+            redict = self.get_pagedata(df)
+            for k,v in redict.items():
+                if k not in redata.keys():
+                    redata[k] = ''
+                redata[k] += str(d)+' '+v+'\n'
+            print d
+        return redata
+
+    def get_percent(self, data_dir,dt_type, pos):
+        redata = {}
+        files = os.listdir(data_dir)
+        if dt_type:
+            dt_files = [f for f in files if dt_type in f]
+        else:
+            dt_files = files
+        for f in dt_files:
+            redict = self.calc_percent(os.path.join(data_dir,f),pos)
+            for k,v in redict.items():
+                redata[k] = v
+        return redata
+    
+    def calc_percent(self, pathfile, pos):
+        percent = {}
+        vlist = []
+        for line in open(pathfile, 'r'):
+            vline = line.strip().split(',')
+            try:
+                pe = float(vline[12])
+                pb = float(vline[13])
+            except ValueError:
+                continue
+            curr = float(vline[pos])
+            last_value = curr
+            roe = 100*pb/pe
+            hy_code = str(vline[1]).zfill(6)
+            vlist.append(curr)
+        #at least two years
+        if len(vlist)<100:
+            return percent
+        high = []
+        low = []
+        #20 data average
+        for i in range(20):
+            v = max(vlist)
+            high.append(v)
+            vlist.remove(v)
+            v = min(vlist)
+            low.append(v)
+            vlist.remove(v)
+        avg_high = sum(high)/len(high)
+        avg_low = sum(low)/len(low)
+        if avg_low > last_value:
+            per = 0
+        elif avg_high < last_value:
+            per = 100
+        else:
+            per = 100*(last_value-avg_low)/(avg_high-avg_low)
+        if per == 0:
+            percent[hy_code] = str(vline[7]).zfill(6)+' pb: '+str(pb)+' pe: '+str(pe)+' roe: '+str(roe)
+            print avg_high,avg_low,last_value,percent
+        # print avg_high,avg_low,last_value,percent
+        return percent
+
 def get_zy_data(df):
 # input dataframe
     relist = []
@@ -163,7 +253,24 @@ if __name__ == '__main__':
     #find_value(begin_date)
     #get_zz_all(begin_date)
     # get_zy_all(begin_date)
-    datadir = '/home/li/data'
-    get_position(datadir,'zz_dt_pe')
-    print 'Next is PB'
-    get_position(datadir,'zz_pb')
+    #datadir = '/home/li/data'
+    #get_position(datadir,'zz_dt_pe')
+    #print 'Next is PB'
+    #get_position(datadir,'zz_pb')
+    if 1:
+        datadir = '/home/li/company'
+        gs = StockData()
+        print 'find the lowest PE'
+        pe = gs.get_percent(datadir,None,12)
+        print 'find the lowest PB'
+        pb = gs.get_percent(datadir,None,13)
+    if 0:
+        gs = StockData()
+        begin_date = '2017-12-08'
+        for c in config.csrc_code:
+            print c
+            data = gs.get_data_by_type(begin_date, c)
+            for k,v in data.items():
+                filename = '/home/li/company/'+k+'.txt'
+                with open(filename, 'a') as f:
+                    f.write(v.encode('utf-8'))
