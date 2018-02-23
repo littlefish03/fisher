@@ -1,4 +1,5 @@
 #created by licw
+# -*-coding=utf-8-*-
 cs_main_begin_date = '2011-05-06'
 zy_type = ['zy1', 'zy2', 'zy3', 'zy4']
 cs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio?type=%s&date=%s'
@@ -20,3 +21,35 @@ hy_code = [101, 102,103,
            90101,90102,90103,90104,90105 ]
 csrc_code = ['00','01','02','03','04','05','06','07','08','09']
 gs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio-detail?industry_code=1&zb_flg=1&csrc_code=%s&date=%s&type=0&class=2'
+glsj = '002275' ##桂林三金
+lfx  = '600612' ##老凤祥
+htxx = '600271' ##航天信息
+tcyl = '600763' ##通策医疗
+sdht = '000915' ##山大华特
+xlt  = '002294' ##信立泰
+ewsa = '000501' ##鄂武商a
+wwsw = '300357' ##我武生物
+swgf = '600201' ##生物股份
+ynby = '000538' ##云南白药
+hcjs = '300124' ##汇川技术
+ehyy = '002262' ##恩华药业
+sfy  = '002572' ##索菲亚
+
+fhcm = '601928' ##凤凰传媒
+hscy = '600305' ##恒顺醋业
+flzc = '002507' ##涪陵榨菜
+sdgs = '600350' ##山东高速
+smgf = '600823' ##世茂股份
+xdtz = '000900' ##现代投资
+zgtj = '601186' ##中国铁建
+caqc = '000625' ##长安汽车
+trzb = '002150' ##通润装备
+sxxc = '002585' ##双星新材
+bldf = '601339' ##百隆东方
+qpl  = '002029' ##七匹狼
+cjcm = '600757' ##长江传媒
+lta  = '000726' ##鲁泰a
+dzjt = '600611' ##大众交通
+
+hold_stocks = [glsj, lfx, htxx, tcyl, sdht, xlt, ewsa, wwsw, swgf, ynby, hcjs, ehyy, sfy,
+               hscy, flzc, sdgs, smgf, xdtz, zgtj, caqc, cjcm, dzjt]

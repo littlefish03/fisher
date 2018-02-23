@@ -1,9 +1,13 @@
 #created by licw
+# -*-coding=utf-8-*-
 import config
-from datetime import datetime
+from datetime import datetime,timedelta
 import os
+import sys
 import time
 import utils
+import numpy as np
+from scipy import stats as sci
 
 class StockData():
     def get_pagedata(self, df):
@@ -104,6 +108,162 @@ class StockData():
             print hy_code+','+str(vline[7]).zfill(6)+','+str(pb)+','+str(pe)+','+str(roe)
         # print avg_high,avg_low,last_value,percent
         return percent
+
+    def get_roe_by_code(self, data_dir, code_list,flag):
+        for code in code_list:
+            f = code+'.txt'
+            redict = self.scrub_data(os.path.join(data_dir,f),flag)
+            for k,v in redict.items():
+                if flag=='roe':
+                    std,mean,median,cv,skew,curr = self.calc_roe(v)
+                    print 'company:',k,'mean:',mean,'std:',std,'cv:',cv,'skew:',skew,'count:',len(v),'curr:',curr
+                else:
+                    avg_high,avg_low,last_value,per = self.calc_pepb(v)
+                    print 'company:',k,'high:',avg_high,'low:',avg_low,'cur:',last_value,'per:',per
+
+    def calc_pepb(self, data):
+        vlist = data
+        if len(vlist)<100:
+            return
+        high = []
+        low = []
+        last_value = vlist[-1]
+        #10 data average
+        for i in range(10):
+            v = max(vlist)
+            high.append(v)
+            vlist.remove(v)
+            v = min(vlist)
+            low.append(v)
+            vlist.remove(v)
+        avg_high = sum(high)/len(high)
+        avg_low = sum(low)/len(low)
+        if avg_low > last_value:
+            per = 0
+        elif avg_high < last_value:
+            per = 100
+        else:
+            per = 100*(last_value-avg_low)/(avg_high-avg_low)
+        return avg_high,avg_low,last_value,per
+
+    def get_roe(self, data_dir,dt_type):
+        stddict = {}
+        meandict = {}
+        meddict = {}
+        cvdict = {}
+        skewdict = {}
+        countdict = {}
+        currdict = {}
+        files = os.listdir(data_dir)
+        if dt_type:
+            dt_files = [f for f in files if dt_type in f]
+        else:
+            dt_files = files
+        for f in dt_files:
+            redict = self.scrub_data(os.path.join(data_dir,f),'roe')
+            for k,v in redict.items():
+                std,mean,median,cv,skew,curr = self.calc_roe(v)
+                stddict[k] = std
+                meandict[k] = mean
+                meddict[k] = median
+                cvdict[k] = cv
+                skewdict[k] = skew
+                countdict[k] = len(v)
+                currdict[k] = curr
+        sortcv = sorted(cvdict.items(),key=lambda std:std[1])
+        company = []
+        for i in range(len(sortcv)):
+            code = sortcv[i][0]
+            if meandict[code]<15 or skewdict[code]>1:
+                continue
+            if sortcv[i][1]>15:
+                break
+            company.append(code)
+            print code,'mean:',meandict[code],'median:',meddict[code],
+            print 'cv:',cvdict[code],'std:',stddict[code],
+            print 'skew:',skewdict[code],'count:',countdict[code],'curr:',currdict[code]
+        return company
+
+    def get_max_roe(self, data_dir,dt_type):
+        stddict = {}                                                                     
+        meandict = {}                                                                    
+        meddict = {}                                                                     
+        cvdict = {}                                                                      
+        skewdict = {}                                                                    
+        countdict = {}                                                                   
+        currdict = {}                                                                    
+        files = os.listdir(data_dir)                                                     
+        if dt_type:                                                                      
+            dt_files = [f for f in files if dt_type in f]                                
+        else:                                                                            
+            dt_files = files                                                             
+        for f in dt_files:                                                               
+            redict = self.scrub_data(os.path.join(data_dir,f),'roe')                     
+            for k,v in redict.items():                                                   
+                std,mean,median,cv,skew,curr = self.calc_roe(v)                          
+                stddict[k] = std                                                         
+                meandict[k] = mean                                                       
+                meddict[k] = median                                                      
+                cvdict[k] = cv                                                           
+                skewdict[k] = skew                                                       
+                countdict[k] = len(v)                                                    
+                currdict[k] = curr                                                       
+        sortroe = sorted(meandict.items(),key=lambda std:std[1],reverse=True)                            
+        company = []                                                                     
+        for i in range(len(sortroe)):                                                     
+            code = sortroe[i][0]                                                          
+            #if meandict[code]-stddict[code]<20:         
+            if currdict[code]<15 or cvdict[code]>20 or skewdict[code]>1:                           
+                continue                                                                 
+            if sortroe[i][1]<15:                                                          
+                break                                                                    
+            company.append(code)                                                         
+            print code,'mean:',meandict[code],'median:',meddict[code],                   
+            print 'cv:',cvdict[code],'std:',stddict[code],                               
+            print 'skew:',skewdict[code],'count:',countdict[code],'curr:',currdict[code] 
+        return company                                                                   
+
+    def scrub_data(self, pathfile,flag):
+        vlist = []
+        roe = 0
+        #start_date = datetime.strptime('2017-12-15','%Y-%M-%d')-timedelta(days=5*365)
+        start_date = datetime.now()-timedelta(days=5*365)
+        end_date = datetime.strptime('2027-1-14','%Y-%M-%d')
+        for line in open(pathfile, 'r'):
+            vline = line.strip().split(',')
+            cur_date = datetime.strptime(vline[0].strip(),'%Y-%M-%d')
+            if cur_date<start_date:
+                continue
+            if cur_date>end_date:
+                break
+            try:
+                pe = float(vline[12])
+                pb = float(vline[13])
+            except ValueError:
+                # print vline
+                continue
+            roe = 100*pb/pe
+            hy_code = str(vline[1]).zfill(6)
+            if flag=='roe':
+                vlist.append(roe)
+            elif flag=='pe':
+                vlist.append(pe)
+            else:
+                vlist.append(pb)
+        #at least two years
+        if len(vlist)<100:
+            return {}
+        return {hy_code: vlist}
+
+    def calc_roe(self, data):
+        array = np.array(data)
+        std = array.std()
+        mean = array.mean()
+        median = np.median(array)
+        cv = 100*sci.variation(array)
+        skew = sci.skew(array)
+        last_value = data[-1]
+        return std,mean,median,cv,skew,last_value
 
 def get_zy_data(df):
 # input dataframe
@@ -268,16 +428,59 @@ if __name__ == '__main__':
     #get_position(datadir,'zz_dt_pe')
     #print 'Next is PB'
     #get_position(datadir,'zz_pb')
-    if 1:
+    if len(sys.argv) == 1:
+        print 'Usage: Input roe for stocks roe'
+        print 'Input data date(year-month-day) for download data'
+        print 'Input company for finding max roe companies'
+        exit()
+    datadir = '/home/li/company'
+    if sys.argv[1] == 'roe':
+        hold_codes = ['601928','600305','002507','300124','600350',
+                      '600823','000900','002275','600048','600612',
+                      '601186','000625','002150','600271','600763',
+                      '000915','002585','002294','601339','002029',
+                      '300357','000726','600611','600757']
+        xq = ['600519','002304','000895','600886','600036',
+              '600016','002294','002415','600196','600763',
+              '300003','601318','000651','002508','002241',
+              '002572','600340','600900','600004','600660',
+              '600276','002236','002104','002701']
+        low_pb = ['600350','600611','000625','000708','000726',
+                  '000552','600757','600308','600449','600894',
+                  '600585','600019','600649','000667','600126',
+                  '000550','000719','000898','002187','601188',
+                  '600016','600036']
+        high_gx = ['000895','600011','601988','601288','601328',
+                   '601158','600066','000726','601088','002411']
+        company = config.hold_stocks
+        gs = StockData()
+        print 'roe'
+        gs.get_roe_by_code(datadir,company,'roe')
+        print 'pe'
+        gs.get_roe_by_code(datadir,company,'pe')
+        print 'pb'
+        gs.get_roe_by_code(datadir,company,'pb')
+    #find max roe company
+    if sys.argv[1] == 'company':
+        datadir = '/home/li/company'
+        gs = StockData()
+        company = gs.get_max_roe(datadir,None)
+        # company = gs.get_roe(datadir,None)
+        print 'pe'
+        gs.get_roe_by_code(datadir,company,'pe')
+        print 'pb'
+        gs.get_roe_by_code(datadir,company,'pb')
+    if 0:
         datadir = '/home/li/company'
         gs = StockData()
         print 'find the lowest PE'
         pe = gs.get_percent(datadir,None,12)
         print 'find the lowest PB'
         pb = gs.get_percent(datadir,None,13)
-    if 0:
+    #download company info
+    if len(sys.argv) == 3 and sys.argv[1] == 'data':
         gs = StockData()
-        begin_date = '2017-12-08'
+        begin_date = sys.argv[2] ##'2018-2-14'
         for c in config.csrc_code:
             print c
             data = gs.get_data_by_type(begin_date, c)
