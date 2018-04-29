@@ -430,7 +430,7 @@ if __name__ == '__main__':
     #get_position(datadir,'zz_pb')
     if len(sys.argv) == 1:
         print 'Usage: Input roe for stocks roe'
-        print 'Input data date(year-month-day) for download data'
+        print 'Input data  for download data'
         print 'Input company for finding max roe companies'
         exit()
     datadir = '/home/li/company'
@@ -478,9 +478,14 @@ if __name__ == '__main__':
         print 'find the lowest PB'
         pb = gs.get_percent(datadir,None,13)
     #download company info
-    if len(sys.argv) == 3 and sys.argv[1] == 'data':
+    if sys.argv[1] == 'data':
         gs = StockData()
-        begin_date = sys.argv[2] ##'2018-2-14'
+        with open('/home/li/date.txt','r+') as f:
+            begin_date = f.readline().strip('\n') ##'2018-2-14'
+            curr_date = datetime.now()+timedelta(days=1)
+            f.seek(0)
+            f.write(curr_date.strftime('%Y-%m-%d'))
+
         for c in config.csrc_code:
             print c
             data = gs.get_data_by_type(begin_date, c)

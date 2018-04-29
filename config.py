@@ -50,6 +50,7 @@ qpl  = '002029' ##七匹狼
 cjcm = '600757' ##长江传媒
 lta  = '000726' ##鲁泰a
 dzjt = '600611' ##大众交通
+cjdl = '600900' ##长江电力
 
 hold_stocks = [glsj, lfx, htxx, tcyl, sdht, xlt, ewsa, wwsw, swgf, ynby, hcjs, ehyy, sfy,
-               hscy, flzc, sdgs, smgf, xdtz, zgtj, caqc, cjcm, dzjt]
+               hscy, sdgs, xdtz, zgtj, caqc, cjcm, cjdl]

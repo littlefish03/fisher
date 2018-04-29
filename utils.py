@@ -11,7 +11,7 @@ def get_daylist(begin_date):
     while begin_date <= end_date:
         date_str = begin_date.strftime("%Y-%m-%d")
         date_list.append(date_str)
-        begin_date += datetime.timedelta(days=7)
+        begin_date += datetime.timedelta(days=3)
     return date_list
 
 def get_url_data(url):
