@@ -111,7 +111,7 @@ class StockData():
 
     def get_roe_by_code(self, data_dir, code_list,flag):
         for code in code_list:
-            f = code+'.txt'
+            f = code.split(' ')[0]+'.txt'
             redict = self.scrub_data(os.path.join(data_dir,f),flag)
             for k,v in redict.items():
                 if flag=='roe':
@@ -243,7 +243,7 @@ class StockData():
                 # print vline
                 continue
             roe = 100*pb/pe
-            hy_code = str(vline[1]).zfill(6)
+            hy_code = str(vline[1]).zfill(6)+' '+vline[2]
             if flag=='roe':
                 vlist.append(roe)
             elif flag=='pe':
