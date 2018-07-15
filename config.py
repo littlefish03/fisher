@@ -51,6 +51,13 @@ cjcm = '600757' ##长江传媒
 lta  = '000726' ##鲁泰a
 dzjt = '600611' ##大众交通
 cjdl = '600900' ##长江电力
-
-hold_stocks = [glsj, lfx, htxx, tcyl, sdht, xlt, ewsa, wwsw, swgf, ynby, hcjs, ehyy, sfy,
-               hscy, sdgs, xdtz, zgtj, caqc, cjcm, cjdl]
+zsyh = '600036' ##招商银行
+zgpa = '601318' ##中国平安
+dfyh = '002271' ##东方雨虹
+ljz =  '600663' ##陆家嘴
+gzmt = '600519' ##贵州茅台
+hkws = '002415' ##海康威视
+wka = '000002'  ##万科
+hryy = '600276' ##恒瑞医药
+hold_stocks = [ tcyl, sdht, xlt, ewsa, wwsw, swgf, hcjs, ehyy, sfy,
+                cjdl, zsyh, zgpa, gzmt, hkws, wka, hryy]
