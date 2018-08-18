@@ -8,6 +8,7 @@ import time
 import utils
 import numpy as np
 from scipy import stats as sci
+from db.sqlalchemy import models as db
 
 class StockData():
     def get_pagedata(self, df):
@@ -490,6 +491,8 @@ if __name__ == '__main__':
             print c
             data = gs.get_data_by_type(begin_date, c)
             for k,v in data.items():
+                #write db info
+                db.add_info(v)
                 filename = '/home/li/company/'+k+'.txt'
                 with open(filename, 'a') as f:
                     f.write(v.encode('utf-8'))
