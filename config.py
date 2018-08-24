@@ -20,7 +20,8 @@ hy_code = [101, 102,103,
            80101,80102,80201,
            90101,90102,90103,90104,90105 ]
 csrc_code = ['00','01','02','03','04','05','06','07','08','09']
-gs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio-detail?industry_code=1&zb_flg=1&csrc_code=%s&date=%s&type=0&class=2'
+#gs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio-detail?industry_code=1&zb_flg=1&csrc_code=%s&date=%s&type=0&class=2'
+gs_url = 'http://www.csindex.com.cn/zh-CN/downloads/industry-price-earnings-ratio-detail?csrc_code=%s&date=%s&class=2&search=1'
 glsj = '002275' ##桂林三金
 lfx  = '600612' ##老凤祥
 htxx = '600271' ##航天信息

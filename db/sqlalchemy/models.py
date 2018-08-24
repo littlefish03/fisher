@@ -103,9 +103,13 @@ def add_info(lines):
            info.pe = float(data[11])
            info.pe_ttm = float(data[12])
            info.pb = float(data[13])
-           info.dyr = float(data[14])
        except ValueError:
            continue
+       # 股息率没有不影响，单独计算
+       try:
+           info.dyr = float(data[14])
+       except ValueError:
+           info.dyr = 0
        info.roe = 100*info.pb/info.pe_ttm
        #print info.code, info.date, info.pe
        add_data([info])
