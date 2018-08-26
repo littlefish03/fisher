@@ -47,11 +47,14 @@ def create_info():
                info.pe = float(data[11])
                info.pe_ttm = float(data[12])
                info.pb = float(data[13])
-               info.dyr = float(data[14])
            except ValueError:
                continue
+           try:
+               info.dyr = float(data[14])
+           except ValueError:
+               info.dyr = 0
            info.roe = 100*info.pb/info.pe_ttm
            db.add_data([info])
 
-#create_company()
+create_company()
 #create_info()

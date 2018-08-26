@@ -3,8 +3,8 @@
 
 from sqlalchemy import Column, Integer
 from sqlalchemy import String, Float, create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import exc
+from sqlalchemy.orm import sessionmaker, exc
+from sqlalchemy import exc as sqlexc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
 
@@ -62,7 +62,7 @@ def add_data(records):
     # 提交即保存到数据库:
     try:
         session.commit()
-    except exc.IntegrityError:
+    except sqlexc.IntegrityError:
         print 'exist...'
     # 关闭session:
     session.close()
@@ -72,8 +72,11 @@ def get_company(code):
     session = DBSession()
     # 创建Query查询，filter是where条件，最后调用one()返回唯一行，如果调用all()则返回所有行:
     try:
-        company = session.query(Company).filter(Company.code==code).one()
-        print 'company name:', company.name
+        if code:
+            company = session.query(Company).filter(Company.code==code).one()
+        else:
+            company = session.query(Company).filter().all()
+        #print 'company name:', company.name
     except exc.NoResultFound:
         company = None
     finally:
@@ -102,7 +105,7 @@ def get_info(code):
     session = DBSession()
     # 创建Query查询，filter是where条件，最后调用one()返回唯一行，如果调用all()则返回所有行:
     infos = session.query(Info).filter(Info.code==code).all()
-    print('comany infos num:', len(infos))
+    #print('comany infos num:', len(infos))
     # 关闭Session:
     session.close()
     return infos

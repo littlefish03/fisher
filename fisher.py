@@ -113,7 +113,10 @@ class StockData():
     def get_roe_by_code(self, data_dir, code_list,flag):
         for code in code_list:
             f = code.split(' ')[0]+'.txt'
+            #from file
             redict = self.scrub_data(os.path.join(data_dir,f),flag)
+            #from db
+            #redict = self.scrub_data_from_db(code,flag)
             for k,v in redict.items():
                 if flag=='roe':
                     std,mean,median,cv,skew,curr = self.calc_roe(v)
@@ -224,6 +227,41 @@ class StockData():
             print 'skew:',skewdict[code],'count:',countdict[code],'curr:',currdict[code] 
         return company                                                                   
 
+    def get_max_roe_from_db(self, data_dir,dt_type):
+        stddict = {}
+        meandict = {}
+        meddict = {}
+        cvdict = {}
+        skewdict = {}
+        countdict = {}
+        currdict = {}
+        companies = db.get_company(None)
+        for company in companies:
+            redict = self.scrub_data_from_db(company.code,'roe')
+            for k,v in redict.items():
+                std,mean,median,cv,skew,curr = self.calc_roe(v)
+                stddict[k] = std
+                meandict[k] = mean
+                meddict[k] = median
+                cvdict[k] = cv
+                skewdict[k] = skew
+                countdict[k] = len(v)
+                currdict[k] = curr
+        sortroe = sorted(meandict.items(),key=lambda std:std[1],reverse=True)
+        company = []
+        for i in range(len(sortroe)):
+            code = sortroe[i][0]
+            #if meandict[code]-stddict[code]<20:
+            if currdict[code]<15 or cvdict[code]>20 or skewdict[code]>1:
+                continue
+            if sortroe[i][1]<15:
+                break
+            company.append(code.split(' ')[0])
+            print code,'mean:',meandict[code],'median:',meddict[code],
+            print 'cv:',cvdict[code],'std:',stddict[code],
+            print 'skew:',skewdict[code],'count:',countdict[code],'curr:',currdict[code]
+        return company
+
     def scrub_data(self, pathfile,flag):
         vlist = []
         roe = 0
@@ -255,6 +293,29 @@ class StockData():
         if len(vlist)<100:
             return {}
         return {hy_code: vlist}
+
+    def scrub_data_from_db(self, code, flag):
+        vlist = []
+        roe = 0
+        #start_date = datetime.strptime('2017-12-15','%Y-%M-%d')-timedelta(days=5*365)
+        start_date = datetime.now()-timedelta(days=5*365)
+        end_date = datetime.strptime('2027-1-14','%Y-%M-%d')
+        infos = db.get_info(code)
+        comp = db.get_company(code)
+        for info in infos:
+            cur_date = datetime.strptime(info.date.strip(),'%Y-%M-%d')
+            if cur_date<start_date or cur_date>end_date:
+                continue
+            if flag=='roe':
+                vlist.append(info.roe)
+            elif flag=='pe':
+                vlist.append(info.pe_ttm)
+            else:
+                vlist.append(info.pb)
+        #at least two years
+        if len(vlist)<100:
+            return {}
+        return {code+' '+comp.name: vlist}
 
     def calc_roe(self, data):
         array = np.array(data)
@@ -466,7 +527,7 @@ if __name__ == '__main__':
         datadir = '/home/li/company'
         gs = StockData()
         company = gs.get_max_roe(datadir,None)
-        # company = gs.get_roe(datadir,None)
+        #company = gs.get_max_roe_from_db(datadir,None)
         print 'pe'
         gs.get_roe_by_code(datadir,company,'pe')
         print 'pb'
