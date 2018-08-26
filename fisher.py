@@ -42,7 +42,7 @@ class StockData():
                 if k not in redata.keys():
                     redata[k] = ''
                 redata[k] += str(d)+' '+v+'\n'
-            print d
+            #print d
         return redata
 
     def get_percent(self, data_dir,dt_type, pos):
@@ -486,13 +486,14 @@ if __name__ == '__main__':
             curr_date = datetime.now()+timedelta(days=1)
             f.seek(0)
             f.write(curr_date.strftime('%Y-%m-%d'))
-
         for c in config.csrc_code:
             print c
-            data = gs.get_data_by_type(begin_date, c)
-            for k,v in data.items():
-                #write db info
-                db.add_info(v)
-                filename = '/home/li/company/'+k+'.txt'
-                with open(filename, 'a') as f:
-                    f.write(v.encode('utf-8'))
+            codes = db.get_company_by_zzcode(c)
+            for code in codes:
+                data = gs.get_data_by_type(begin_date, code)
+                for k,v in data.items():
+                    #write db info
+                    db.add_info(v)
+                    filename = '/home/li/company/'+k+'.txt'
+                    with open(filename, 'a') as f:
+                        f.write(v.encode('utf-8'))

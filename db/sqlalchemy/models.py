@@ -3,7 +3,8 @@
 
 from sqlalchemy import Column, Integer
 from sqlalchemy import String, Float, create_engine
-from sqlalchemy.orm import sessionmaker, exc
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
 
@@ -56,13 +57,13 @@ def add_data(records):
     # 创建session对象:
     session = DBSession()
     for record in records:
-        try:
-            # 添加到session:
-            session.add(record)
-        except exc.IntegrityError:
-            print 'exist...'
+        # 添加到session:
+        session.add(record)
     # 提交即保存到数据库:
-    session.commit()
+    try:
+        session.commit()
+    except exc.IntegrityError:
+        print 'exist...'
     # 关闭session:
     session.close()
 
@@ -79,6 +80,22 @@ def get_company(code):
         # 关闭Session:
         session.close()
     return company
+
+def get_company_by_zzcode(code):
+    codes = []
+    # 创建Session:
+    session = DBSession()
+    # 创建Query查询，filter是where条件，最后调用one()返回唯一行，如果调用all()则返回所有行:
+    try:
+        company = session.query(Company).filter(Company.zz1code==code).all()
+    except exc.NoResultFound:
+        company = None
+    finally:
+        # 关闭Session:
+        session.close()
+    for c in company:
+        codes.append(c.code)
+    return codes
 
 def get_info(code):
     # 创建Session:
