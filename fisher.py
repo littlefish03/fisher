@@ -551,6 +551,7 @@ if __name__ == '__main__':
             print c
             codes = db.get_company_by_zzcode(c)
             for code in codes:
+                print code
                 data = gs.get_data_by_type(begin_date, code)
                 for k,v in data.items():
                     #write db info
