@@ -48,7 +48,7 @@ class Info(Base):
      roe = Column(Float, nullable=True)
 
 # 初始化数据库连接:
-engine = create_engine('sqlite:///stocks.db')
+engine = create_engine('sqlite:////home/code/fisher/stocks.db')
 Base.metadata.create_all(engine)
 # 创建DBSession类型:
 DBSession = sessionmaker(bind=engine)
